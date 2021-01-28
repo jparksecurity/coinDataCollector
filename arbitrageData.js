@@ -1,5 +1,7 @@
 const ccxt = require("ccxt");
 const { Point } = require("@influxdata/influxdb-client");
+const log = require("loglevel");
+const { currentTime } = require("./utils");
 
 module.exports = (writeApi) => {
   const bithumb = new ccxt.bithumb();
@@ -26,7 +28,7 @@ module.exports = (writeApi) => {
       addOrdersToPoint(asks, "asks", point);
       writeApi.writePoint(point);
     } catch (error) {
-      console.log(error);
+      log.warn(currentTime, error);
     }
   };
 

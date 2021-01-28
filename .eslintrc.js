@@ -6,6 +6,5 @@ module.exports = {
   extends: ["airbnb-base", "plugin:prettier/recommended"],
   rules: {
     "new-cap": ["error", { newIsCapExceptions: ["bithumb", "upbit"] }],
-    "no-console": "off",
   },
 };

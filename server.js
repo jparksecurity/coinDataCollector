@@ -1,7 +1,11 @@
 require("dotenv").config();
+const log = require("loglevel");
 const { InfluxDB } = require("@influxdata/influxdb-client");
 // const collectArbitrageData = require("./arbitrageData");
 const collectLiquidityMiningData = require("./liquidityMiningData");
+const { currentTime } = require("./utils");
+
+// log.enableAll();
 
 const writeApi = new InfluxDB({
   url: process.env.URL,
@@ -11,14 +15,11 @@ const writeApi = new InfluxDB({
 // collectArbitrageData(writeApi);
 collectLiquidityMiningData(writeApi);
 
-process.on("SIGTERM", () => {
-  writeApi
-    .close()
-    .then(() => {
-      console.log("Process terminated");
-    })
-    .catch((error) => {
-      console.log(error);
-      console.log("\\nFinished ERROR");
-    });
+process.on("SIGTERM", async () => {
+  try {
+    await writeApi.close();
+    log.info(currentTime, "Process terminated");
+  } catch (error) {
+    log.warn(currentTime, error, "\\nFinished ERROR");
+  }
 });

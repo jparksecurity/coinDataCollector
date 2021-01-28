@@ -1,6 +1,7 @@
 const WebSocket = require("ws");
 const { nanoid } = require("nanoid");
 const { Point } = require("@influxdata/influxdb-client");
+const log = require("loglevel");
 
 module.exports = () => {
   const ws = new WebSocket(process.env.UPBIT_WEBSOKET_URL);
@@ -22,7 +23,7 @@ module.exports = () => {
       .floatField("price", tp)
       .floatField("volume", tv)
       .booleanField("isAsk", ab === "ASK");
-    console.log(point);
+    log.debug(point);
   };
   const collectOrderbook = ({
     timestamp,
@@ -37,7 +38,7 @@ module.exports = () => {
       .floatField("bids_0_price", bp)
       .floatField("asks_0_quantity", as)
       .floatField("bids_0_quantity", bs);
-    console.log(point);
+    log.debug(point);
   };
 
   ws.on("open", () => {
