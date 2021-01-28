@@ -1,13 +1,15 @@
 require("dotenv").config();
 const { InfluxDB } = require("@influxdata/influxdb-client");
-const collectArbitrageData = require("./arbitrageData");
+// const collectArbitrageData = require("./arbitrageData");
+const collectLiquidityMiningData = require("./liquidityMiningData");
 
 const writeApi = new InfluxDB({
   url: process.env.URL,
   token: process.env.TOKEN,
 }).getWriteApi(process.env.ORG, process.env.BUCKET, "ms");
 
-collectArbitrageData(writeApi);
+// collectArbitrageData(writeApi);
+collectLiquidityMiningData(writeApi);
 
 process.on("SIGTERM", () => {
   writeApi
