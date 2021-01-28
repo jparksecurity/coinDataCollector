@@ -2,6 +2,7 @@ const WebSocket = require("ws");
 const { nanoid } = require("nanoid");
 const { Point } = require("@influxdata/influxdb-client");
 const log = require("loglevel");
+// const { writeApi } = require("./utils");
 
 module.exports = () => {
   const ws = new WebSocket(process.env.UPBIT_WEBSOKET_URL);

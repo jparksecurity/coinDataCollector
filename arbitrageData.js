@@ -1,9 +1,9 @@
 const ccxt = require("ccxt");
 const { Point } = require("@influxdata/influxdb-client");
 const log = require("loglevel");
-const { currentTime } = require("./utils");
+const { currentTime, writeApi } = require("./utils");
 
-module.exports = (writeApi) => {
+module.exports = () => {
   const bithumb = new ccxt.bithumb();
   const upbit = new ccxt.upbit();
 
