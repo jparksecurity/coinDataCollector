@@ -2,7 +2,9 @@
   "scripts": {
     "format": "npx prettier --write .",
     "lint": "npx eslint *.js",
-    "start": "npm run format && npm run lint && node app.js"
+    "fix": "npm run format && npm run lint",
+    "dev": "npm run fix && node server.js",
+    "prod": "NODE_ENV=production node server.js"
   },
   "dependencies": {
     "@influxdata/influxdb-client": "^1.9.0",
