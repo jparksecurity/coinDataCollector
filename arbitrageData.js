@@ -95,10 +95,10 @@ module.exports = () => {
     process.env.CANDLE_LIMIT * 60 * 1000
   );
 
-  process.on("SIGTERM", () => {
-    clearInterval(bithumbOrderbookInterval);
-    clearInterval(upbitOrderbookInterval);
-    clearInterval(bithumbOhlcvInterval);
-    clearInterval(upbitOhlcvInterval);
-  });
+  return {
+    bithumbOrderbookInterval,
+    upbitOrderbookInterval,
+    bithumbOhlcvInterval,
+    upbitOhlcvInterval,
+  };
 };

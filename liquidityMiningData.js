@@ -73,7 +73,5 @@ module.exports = () => {
     }
   });
 
-  process.on("SIGTERM", () => {
-    ws.close(1000);
-  });
+  return ws;
 };
