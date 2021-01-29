@@ -73,5 +73,7 @@ module.exports = () => {
     }
   });
 
-  return ws;
+  return () => {
+    ws.close(1000);
+  };
 };

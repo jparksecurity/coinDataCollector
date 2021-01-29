@@ -6,21 +6,13 @@ const { currentTime, writeApi } = require("./utils");
 
 // log.enableAll();
 
-const {
-  bithumbOrderbookInterval,
-  upbitOrderbookInterval,
-  bithumbOhlcvInterval,
-  upbitOhlcvInterval,
-} = collectArbitrageData();
-const upbitWebsocket = collectLiquidityMiningData();
+const arbitrageClose = collectArbitrageData();
+const liquidityClose = collectLiquidityMiningData();
 
 process.on("SIGTERM", async () => {
   try {
-    upbitWebsocket.close(1000);
-    clearInterval(bithumbOrderbookInterval);
-    clearInterval(upbitOrderbookInterval);
-    clearInterval(bithumbOhlcvInterval);
-    clearInterval(upbitOhlcvInterval);
+    arbitrageClose();
+    liquidityClose();
     await writeApi.close();
     log.info(currentTime, "Process terminated");
   } catch (error) {

@@ -95,10 +95,10 @@ module.exports = () => {
     process.env.CANDLE_LIMIT * 60 * 1000
   );
 
-  return {
-    bithumbOrderbookInterval,
-    upbitOrderbookInterval,
-    bithumbOhlcvInterval,
-    upbitOhlcvInterval,
+  return () => {
+    clearInterval(bithumbOrderbookInterval);
+    clearInterval(upbitOrderbookInterval);
+    clearInterval(bithumbOhlcvInterval);
+    clearInterval(upbitOhlcvInterval);
   };
 };
