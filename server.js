@@ -4,8 +4,6 @@ const collectArbitrageData = require("./arbitrageData");
 const collectLiquidityMiningData = require("./liquidityMiningData");
 const { currentTime, writeApi } = require("./utils");
 
-// log.enableAll();
-
 const arbitrageClose = collectArbitrageData();
 const liquidityClose = collectLiquidityMiningData();
 

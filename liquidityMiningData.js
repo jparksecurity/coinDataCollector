@@ -2,13 +2,18 @@ const WebSocket = require("ws");
 const { nanoid } = require("nanoid");
 const { Point } = require("@influxdata/influxdb-client");
 const log = require("loglevel");
-// const { writeApi } = require("./utils");
+const { influxdb } = require("./utils");
 
 module.exports = () => {
-  const ws = new WebSocket(process.env.UPBIT_WEBSOKET_URL);
+  const ws = new WebSocket(process.env.LIQUIDITY_UPBIT_WEBSOKET);
   const trade = "trade";
   const orderbook = "orderbook";
   const exchange = "upbit";
+  const writeApi = influxdb.getWriteApi(
+    process.env.ORG,
+    process.env.LIQUIDITY_BUCKET,
+    "ms"
+  );
 
   const collectTrade = ({
     timestamp,
@@ -24,7 +29,8 @@ module.exports = () => {
       .floatField("price", tp)
       .floatField("volume", tv)
       .booleanField("isAsk", ab === "ASK");
-    log.debug(point);
+    writeApi.writePoint(point);
+    log.debug(point.toLineProtocol(writeApi));
   };
   const collectOrderbook = ({
     timestamp,
@@ -39,7 +45,8 @@ module.exports = () => {
       .floatField("bids_0_price", bp)
       .floatField("asks_0_quantity", as)
       .floatField("bids_0_quantity", bs);
-    log.debug(point);
+    writeApi.writePoint(point);
+    log.debug(point.toLineProtocol(writeApi));
   };
 
   ws.on("open", () => {
@@ -48,12 +55,14 @@ module.exports = () => {
         { ticket: nanoid() },
         {
           type: trade,
-          codes: [process.env.UPBIT_SYMBOL],
+          codes: [process.env.LIQUIDITY_SYMBOL],
           isOnlyRealtime: true,
         },
         {
           type: orderbook,
-          codes: [`${process.env.UPBIT_SYMBOL}.1`],
+          codes: [
+            `${process.env.LIQUIDITY_SYMBOL}.${process.env.LIQUIDITY_ORDERBOOK_LIMIT}`,
+          ],
           isOnlyRealtime: true,
         },
       ])

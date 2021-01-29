@@ -1,11 +1,16 @@
 const ccxt = require("ccxt");
 const { Point } = require("@influxdata/influxdb-client");
 const log = require("loglevel");
-const { currentTime, writeApi } = require("./utils");
+const { currentTime, influxdb } = require("./utils");
 
 module.exports = () => {
   const bithumb = new ccxt.bithumb();
   const upbit = new ccxt.upbit();
+  const writeApi = influxdb.getWriteApi(
+    process.env.ORG,
+    process.env.ARBITRAGE_BUCKET,
+    "ms"
+  );
 
   const addOrdersToPoint = (orders, name, point) => {
     orders.forEach((order, index) =>
@@ -18,8 +23,8 @@ module.exports = () => {
   const collectOrderbook = async (exchange, name) => {
     try {
       const { bids, asks, timestamp } = await exchange.fetchOrderBook(
-        process.env.SYMBOL,
-        process.env.ORDERBOOK_LIMIT
+        process.env.ARBITRAGE_SYMBOL,
+        process.env.ARBITRAGE_ORDERBOOK_LIMIT
       );
       const point = new Point("orderbook")
         .tag("exchange", name)
@@ -27,6 +32,7 @@ module.exports = () => {
       addOrdersToPoint(bids, "bids", point);
       addOrdersToPoint(asks, "asks", point);
       writeApi.writePoint(point);
+      log.debug(point.toLineProtocol(writeApi));
     } catch (error) {
       log.warn(currentTime, error);
     }
@@ -47,28 +53,29 @@ module.exports = () => {
         .floatField("volume", candle[5])
     );
     writeApi.writePoints(points);
+    log.debug(points.toLineProtocol(writeApi));
   };
 
   const collectBithumbOhlcv = async () => {
     const data = await bithumb.fetchOHLCV(
-      process.env.SYMBOL,
-      process.env.CANDLE_TIMEFRAME,
+      process.env.ARBITRAGE_SYMBOL,
+      process.env.ARBITRAGE_CANDLE_TIMEFRAME,
       bithumbCandlesSince,
-      bithumbCandlesSince && process.env.CANDLE_LIMIT
+      bithumbCandlesSince && process.env.ARBITRAGE_CANDLE_LIMIT
     );
     const candles = bithumbCandlesSince
       ? data
-      : data.slice(data.length - process.env.CANDLE_LIMIT);
+      : data.slice(data.length - process.env.ARBITRAGE_CANDLE_LIMIT);
     addCandles(candles, "bithumb");
     bithumbCandlesSince = candles[candles.length - 1][0] + 1;
   };
 
   const collectUpbitOhlcv = async () => {
     const candles = await upbit.fetchOHLCV(
-      process.env.SYMBOL,
-      process.env.CANDLE_TIMEFRAME,
+      process.env.ARBITRAGE_SYMBOL,
+      process.env.ARBITRAGE_CANDLE_TIMEFRAME,
       upbitCandlesSince,
-      process.env.CANDLE_LIMIT
+      process.env.ARBITRAGE_CANDLE_LIMIT
     );
     addCandles(candles, "upbit");
     upbitCandlesSince = candles[candles.length - 1][0] + 1;
@@ -76,23 +83,23 @@ module.exports = () => {
 
   const bithumbOrderbookInterval = setInterval(
     collectOrderbook,
-    process.env.ORDERBOOK_TIMEFRAME_PERIOD * 1000,
+    process.env.ARBITRAGE_ORDERBOOK_TIMEFRAME_PERIOD * 1000,
     bithumb,
     "bithumb"
   );
   const upbitOrderbookInterval = setInterval(
     collectOrderbook,
-    process.env.ORDERBOOK_TIMEFRAME_PERIOD * 1000,
+    process.env.ARBITRAGE_ORDERBOOK_TIMEFRAME_PERIOD * 1000,
     upbit,
     "upbit"
   );
   const bithumbOhlcvInterval = setInterval(
     collectBithumbOhlcv,
-    process.env.CANDLE_LIMIT * 60 * 1000
+    process.env.ARBITRAGE_CANDLE_LIMIT * 60 * 1000
   );
   const upbitOhlcvInterval = setInterval(
     collectUpbitOhlcv,
-    process.env.CANDLE_LIMIT * 60 * 1000
+    process.env.ARBITRAGE_CANDLE_LIMIT * 60 * 1000
   );
 
   return () => {
