@@ -55,7 +55,9 @@ module.exports = () => {
         .floatField("volume", candle[5])
     );
     writeApi.writePoints(points);
-    log.debug(points.toLineProtocol(writeApi));
+    points.forEach((point) => {
+      log.debug(point.toLineProtocol(writeApi));
+    });
   };
 
   const collectBithumbOhlcv = async () => {
