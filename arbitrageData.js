@@ -4,8 +4,10 @@ const log = require("loglevel");
 const { currentTime, influxdb } = require("./utils");
 
 module.exports = () => {
-  const bithumb = new ccxt.bithumb();
-  const upbit = new ccxt.upbit();
+  const ccxtBithumb = new ccxt.bithumb();
+  const ccxtUpbit = new ccxt.upbit();
+  const bithumb = "bithumb";
+  const upbit = "upbit";
   const writeApi = influxdb.getWriteApi(
     process.env.ORG,
     process.env.ARBITRAGE_BUCKET,
@@ -57,7 +59,7 @@ module.exports = () => {
   };
 
   const collectBithumbOhlcv = async () => {
-    const data = await bithumb.fetchOHLCV(
+    const data = await ccxtBithumb.fetchOHLCV(
       process.env.ARBITRAGE_SYMBOL,
       process.env.ARBITRAGE_CANDLE_TIMEFRAME,
       bithumbCandlesSince,
@@ -66,32 +68,32 @@ module.exports = () => {
     const candles = bithumbCandlesSince
       ? data
       : data.slice(data.length - process.env.ARBITRAGE_CANDLE_LIMIT);
-    addCandles(candles, "bithumb");
+    addCandles(candles, bithumb);
     bithumbCandlesSince = candles[candles.length - 1][0] + 1;
   };
 
   const collectUpbitOhlcv = async () => {
-    const candles = await upbit.fetchOHLCV(
+    const candles = await ccxtUpbit.fetchOHLCV(
       process.env.ARBITRAGE_SYMBOL,
       process.env.ARBITRAGE_CANDLE_TIMEFRAME,
       upbitCandlesSince,
       process.env.ARBITRAGE_CANDLE_LIMIT
     );
-    addCandles(candles, "upbit");
+    addCandles(candles, upbit);
     upbitCandlesSince = candles[candles.length - 1][0] + 1;
   };
 
   const bithumbOrderbookInterval = setInterval(
     collectOrderbook,
     process.env.ARBITRAGE_ORDERBOOK_TIMEFRAME_PERIOD * 1000,
-    bithumb,
-    "bithumb"
+    ccxtBithumb,
+    bithumb
   );
   const upbitOrderbookInterval = setInterval(
     collectOrderbook,
     process.env.ARBITRAGE_ORDERBOOK_TIMEFRAME_PERIOD * 1000,
-    upbit,
-    "upbit"
+    ccxtUpbit,
+    upbit
   );
   const bithumbOhlcvInterval = setInterval(
     collectBithumbOhlcv,
