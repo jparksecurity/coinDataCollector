@@ -2,10 +2,15 @@ const WebSocket = require("ws");
 const { nanoid } = require("nanoid");
 const { Point } = require("@influxdata/influxdb-client");
 const log = require("loglevel");
-const { influxdb } = require("./utils");
+const ReconnectingWebSocket = require("reconnecting-websocket");
+const { currentTime, influxdb } = require("./utils");
 
 module.exports = () => {
-  const ws = new WebSocket(process.env.LIQUIDITY_UPBIT_WEBSOKET);
+  const rws = new ReconnectingWebSocket(
+    process.env.LIQUIDITY_UPBIT_WEBSOKET,
+    [],
+    { WebSocket }
+  );
   const trade = "trade";
   const orderbook = "orderbook";
   const exchange = "upbit";
@@ -49,8 +54,8 @@ module.exports = () => {
     log.debug(point.toLineProtocol(writeApi));
   };
 
-  ws.on("open", () => {
-    ws.send(
+  rws.addEventListener("open", () => {
+    rws.send(
       JSON.stringify([
         { ticket: nanoid() },
         {
@@ -69,8 +74,8 @@ module.exports = () => {
     );
   });
 
-  ws.on("message", (rawMessage) => {
-    const message = JSON.parse(rawMessage);
+  rws.addEventListener("message", ({ data }) => {
+    const message = JSON.parse(data);
     switch (message.type) {
       case trade:
         collectTrade(message);
@@ -82,7 +87,14 @@ module.exports = () => {
     }
   });
 
+  const logDisconnection = ({ type }) => {
+    log.warn(currentTime, `${type} happened for upbit websocket`);
+  };
+  rws.addEventListener("error", logDisconnection);
+  rws.addEventListener("close", logDisconnection);
+
   return () => {
-    ws.close(1000);
+    rws.removeEventListener("close", logDisconnection);
+    rws.close();
   };
 };
