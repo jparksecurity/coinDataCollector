@@ -4,7 +4,7 @@
     "lint": "npx eslint *.js",
     "fix": "npm run format && npm run lint",
     "dev": "npm run fix && node server.js",
-    "prod": "NODE_ENV=production node server.js"
+    "prod": "NODE_ENV=production node server.js > stdout.txt 2> stderr.txt &"
   },
   "dependencies": {
     "@influxdata/influxdb-client": "^1.9.0",
