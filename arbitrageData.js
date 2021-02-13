@@ -61,28 +61,36 @@ module.exports = () => {
   };
 
   const collectBithumbOhlcv = async () => {
-    const data = await ccxtBithumb.fetchOHLCV(
-      process.env.ARBITRAGE_SYMBOL,
-      process.env.ARBITRAGE_CANDLE_TIMEFRAME,
-      bithumbCandlesSince,
-      bithumbCandlesSince && process.env.ARBITRAGE_CANDLE_LIMIT
-    );
-    const candles = bithumbCandlesSince
-      ? data
-      : data.slice(data.length - process.env.ARBITRAGE_CANDLE_LIMIT);
-    addCandles(candles, bithumb);
-    bithumbCandlesSince = candles[candles.length - 1][0] + 1;
+    try {
+      const data = await ccxtBithumb.fetchOHLCV(
+        process.env.ARBITRAGE_SYMBOL,
+        process.env.ARBITRAGE_CANDLE_TIMEFRAME,
+        bithumbCandlesSince,
+        bithumbCandlesSince && process.env.ARBITRAGE_CANDLE_LIMIT
+      );
+      const candles = bithumbCandlesSince
+        ? data
+        : data.slice(data.length - process.env.ARBITRAGE_CANDLE_LIMIT);
+      addCandles(candles, bithumb);
+      bithumbCandlesSince = candles[candles.length - 1][0] + 1;
+    } catch (error) {
+      log.warn(currentTime, error);
+    }
   };
 
   const collectUpbitOhlcv = async () => {
-    const candles = await ccxtUpbit.fetchOHLCV(
-      process.env.ARBITRAGE_SYMBOL,
-      process.env.ARBITRAGE_CANDLE_TIMEFRAME,
-      upbitCandlesSince,
-      process.env.ARBITRAGE_CANDLE_LIMIT
-    );
-    addCandles(candles, upbit);
-    upbitCandlesSince = candles[candles.length - 1][0] + 1;
+    try {
+      const candles = await ccxtUpbit.fetchOHLCV(
+        process.env.ARBITRAGE_SYMBOL,
+        process.env.ARBITRAGE_CANDLE_TIMEFRAME,
+        upbitCandlesSince,
+        process.env.ARBITRAGE_CANDLE_LIMIT
+      );
+      addCandles(candles, upbit);
+      upbitCandlesSince = candles[candles.length - 1][0] + 1;
+    } catch (error) {
+      log.warn(currentTime, error);
+    }
   };
 
   const bithumbOrderbookInterval = setInterval(
